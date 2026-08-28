@@ -42,6 +42,7 @@ hand-copied prose that quietly diverges from the verbs.
           src = self;                          # must carry its own node_modules
           registries = [ { path = "src/registry.ts"; } ];
           assets = [ "context" "shapes" "HANDBOOK.md" ];
+          hooks = "plugin/hooks";              # optional; copied verbatim
           marketplaceName = "verb-router";
         };
     };
@@ -97,6 +98,18 @@ $out/<name>/<assets>           see below
 resolves against the *bundle*, not the original source file. Putting the bundle at `<name>/lib/`
 and the assets at `<name>/` reproduces the `src/` + repo-root layout the source was written
 against, so those reads keep working with **no source changes**. List them in `assets`.
+
+**Hooks.** Commands are generated from the registry; a hook is a script with its own
+behaviour, so there is nothing in a verb to derive it from and it is copied verbatim. Point
+`hooks` at a directory containing `hooks.json` and its scripts, and it lands at
+`<name>/hooks/`. A `CLAUDE_PLUGIN_ROOT` reference inside `hooks.json` resolves to the installed
+plugin directory, so a `hooks/<script>.sh` command needs no rewriting — unlike `.mcp.json`,
+which had to become an absolute store path because it pointed *outside* the plugin. Exec bits
+are preserved and `.sh` files re-marked.
+
+Commands and hooks are the only components generated or carried. **Agents, skills, and LSP
+servers are not supported yet** — check `claude plugin details` on the plugin you are replacing
+before you disable it.
 
 **Hermeticity.** `bun build` runs with no network, so `src` must carry its own committed
 `node_modules`. `--compile` is deliberately not used: bun's single-binary step hangs at 100% CPU

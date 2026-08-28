@@ -33,6 +33,7 @@
 , src # consumer source tree, including its node_modules
 , registries # [ { path = "src/registry.ts"; export ? "registry"; id ? null; } ]
 , assets ? [ ] # paths relative to `src`, copied to $out/<name>/
+, hooks ? null # path relative to `src` holding hooks.json + its scripts
 , marketplaceName ? name
 , bun ? pkgs.bun
 }:
@@ -99,6 +100,26 @@ pkgs.runCommand "${name}-plugin-${version}"
   ${concatStringsSep "\n" (map (a: ''
     cp -R ${escapeShellArg "${src}/${a}"} "$pluginDir/"
   '') assets)}
+
+  # 4b. Hooks, copied verbatim. Commands are generated from the registry, but a
+  #     hook is a script with its own behaviour — there is nothing in a verb to
+  #     derive it from, so it is carried across as-is.
+  #
+  #     A CLAUDE_PLUGIN_ROOT reference inside hooks.json resolves to the
+  #     installed plugin directory, so a hooks/<script>.sh command keeps working
+  #     with no rewriting — unlike .mcp.json, which had to become an absolute
+  #     store path because it pointed OUTSIDE the plugin. Exec bits survive the
+  #     copy; scripts are re-marked anyway, because a hook that silently does
+  #     not run is the worst failure mode here.
+  ${optionalString (hooks != null) ''
+    if [ ! -f ${escapeShellArg "${src}/${hooks}/hooks.json"} ]; then
+      echo "mkVerbPlugin: no hooks.json under ${hooks}/ — hooks was set but there is nothing to install" >&2
+      exit 1
+    fi
+    cp -R ${escapeShellArg "${src}/${hooks}"} "$pluginDir/hooks"
+    chmod -R u+w "$pluginDir/hooks"
+    find "$pluginDir/hooks" -name '*.sh' -exec chmod +x {} +
+  ''}
 
   # 5. Store-pinned launcher — the absolute command .mcp.json will name.
   cat > "$pluginDir/bin/${launcherName}" <<LAUNCHER_EOF
