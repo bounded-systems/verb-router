@@ -1,0 +1,9 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "verb-router",
+  "description": "bounded-systems Claude Code plugins. Nix consumers do not use this file — mkVerbPlugin generates a marketplace into the store path it builds. This is the git-installable channel, for plugins that ship as source.",
+  "owner": {
+    "name": "Bounded Systems"
+  },
+  "plugins": []
+}

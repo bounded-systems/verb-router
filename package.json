@@ -1,0 +1,47 @@
+{
+  "name": "@bounded-systems/verb-router",
+  "version": "0.1.0",
+  "description": "Compose several @bounded-systems/verbspec registries into one MCP server, and generate a complete Claude Code plugin — commands, manifests, and marketplace — from the verbs themselves.",
+  "bounded": {
+    "tagline": "Registries in, a nix-built Claude Code plugin out — the verb's summary is its tool description and its slash command",
+    "kind": "guest",
+    "facet": "verb",
+    "role": "plugin-generator",
+    "domain": "interface/mcp"
+  },
+  "license": "MIT",
+  "author": "Robert DeLanghe",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "bun": "./src/router.ts",
+      "default": "./src/router.ts"
+    }
+  },
+  "files": [
+    "src",
+    "nix",
+    "modules",
+    "README.md",
+    "LICENSE"
+  ],
+  "peerDependencies": {
+    "@bounded-systems/verbspec": "^0.3.0",
+    "@bounded-systems/verbspec-mcp": "^0.1.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "verbspec",
+    "claude-code",
+    "plugin",
+    "nix",
+    "bounded-systems"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bounded-systems/verb-router.git"
+  },
+  "homepage": "https://github.com/bounded-systems/verb-router#readme"
+}
