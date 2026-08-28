@@ -27,6 +27,16 @@ from a running session with no rebuild: the marketplace is your checkout.)
   build fails on the first unresolvable import — commit them or vendor differently.
   Note that `src = self` is the **git-tracked** tree, not your working tree; a
   partially-committed `node_modules` builds locally and fails in the flake.
+- **Inventory what the old plugin carries besides commands.** Commands are
+  generated from the registry; **nothing else is**. Ask the plugin itself:
+  ```sh
+  claude plugin details <name>@<marketplace>
+  ```
+  Hooks come across via `hooks` (below). Agents, skills, and LSP servers have no
+  equivalent yet — if the inventory lists any, stop and add support before you
+  disable the old plugin, not after. Missing this is how a `SessionStart` hook
+  disappears silently: the six commands and the MCP server all arrive, the
+  migration looks complete, and the thing that ran at session start is gone.
 - **Know your assets.** Grep for module-relative reads:
   ```sh
   grep -rn 'import.meta.url' src/
@@ -139,14 +149,25 @@ claude plugin install verb@verb-router
 claude plugin disable verb@machine-spec
 ```
 
-Then flip the declared state. On a machine where Claude config is hand-maintained
-this is **two** files, not one:
+**Check first whether your config already manages this declaratively.** On phobos
+it did — `home/programs/claude-plugins.nix` owns `extraKnownMarketplaces` and
+`enabledPlugins` and merges them into `settings.json` on activation. Doing it
+there beats hand-editing, and survives the next switch.
 
-- `~/.config/claude/settings.json` — `enabledPlugins`
-- `~/.config/claude/claude.config.json` — then `verb-claude-md generate`
+Two things bite if it does:
 
-Miss the second and the generated `CLAUDE.md` keeps advertising the old plugin,
-and the next regeneration overwrites your understanding of what is enabled.
+- **The merge may be additive.** That module uses `jq '. * $add'`, so *removing*
+  a plugin from the nix set leaves it in `settings.json` at its old value.
+  Disable the predecessor explicitly — `"verb@machine-spec" = false;` — never by
+  deleting the key. Leaving both `true` gives you two plugins with the same name
+  and duplicate commands.
+- **Declared is not registered.** With the marketplace declared in
+  `extraKnownMarketplaces`, `claude plugin install` still failed with *"not found
+  in marketplace"* until one `claude plugin marketplace add <path>` materialized
+  it into `known_marketplaces.json`.
+
+The generated `CLAUDE.md`'s plugin list is derived from `settings.json`, so it
+corrects itself at the next regeneration — there is no second file to edit.
 
 Confirm in a **fresh** session — plugin state is read at session start:
 
