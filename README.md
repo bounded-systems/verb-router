@@ -110,6 +110,12 @@ already turns one registry into a real MCP server, with `filter` / `deps` / `map
 `dispatch` seams; `serve()` here merges registries and hands the result straight to it. Options
 pass through unchanged.
 
+## Adopting it
+
+Migrating an existing hand-written plugin? See [ADOPTING.md](ADOPTING.md) — the
+ordering matters, because a directory marketplace loads from your working tree
+and deleting the old plugin too early takes its commands down everywhere.
+
 ## License
 
 MIT
